@@ -41,9 +41,10 @@ PRICE_WINDOW_SEC    = 90       # rolling window for the mean
 ENTRY_Z             = 0.0009   # 0.09% deviation needed to enter
 MIN_SIGNALS         = 15       # price samples required before first trade
 COOLDOWN_SECONDS    = 30
-MAX_TRADES_PER_HOUR = 101
-DAILY_LOSS_LIMIT    = 422222200.0    # mooney — bot stops after approx this loss
+MAX_TRADES_PER_HOUR = 10
+DAILY_LOSS_LIMIT    = 400.0    # mooney — bot stops after approx this loss
 DRY_RUN             = False    # True = log signals, don't actually trade
+INVERT_SIGNAL       = True     # True = trade against the signal (long->short, short->long)
 
 LOG_FILE = Path("moon_scalp_trades.jsonl")
 # ----------------------------------------------------------------------------
@@ -273,9 +274,9 @@ class MoonBot:
         mean = sum(p.price for p in self.history) / len(self.history)
         dev = (price - mean) / mean
         if dev >= ENTRY_Z:
-            return "short", dev
+            return ("long" if INVERT_SIGNAL else "short"), dev
         if dev <= -ENTRY_Z:
-            return "long", dev
+            return ("short" if INVERT_SIGNAL else "long"), dev
         return None, dev
 
     def estimate_pnl(self, trade, price):
